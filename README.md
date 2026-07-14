@@ -20,6 +20,11 @@ src
     └ token_parser.rs     - Second Pass. Converts the Lexer Tokens int tags like &lthtml&gt and &lt/html&gt 
     └ tree_builder.rs     - Third Pass. Creates the tree structure for the page.
  └ main.rs
+ └ egui_files
+    └ app.rs              - The main gui code file from eframe (egui framework). Contains code to make the gui in the video
+    └ lib.rs              - Lib file from eframe. Just includes the modules 
 resources
  └ html_test.html         - HTML file that gets read into the parser.
+
+
 </pre>
