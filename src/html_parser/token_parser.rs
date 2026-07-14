@@ -5,8 +5,8 @@ use crate::html_parser::lexer::{LexerToken, LexerTokenType};
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum TagPairType {
     Opening,
-    Content,
     Closing,
+    Singular,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -24,11 +24,13 @@ pub enum TagType {
     H2,
     P,
     
+    LineBreak,
+    HorizontalBreak,
 
     Img,
 
     Comment,
-    Data,
+    Text,
     Unhandled,
 
     EOF,
@@ -96,8 +98,7 @@ impl TokenParser {
                 }
                 
             }
-            else if self.compare_token(&LexerTokenType::String, &token_list) || self.compare_token(&LexerTokenType::LineBreak, &token_list) || 
-                self.compare_token(&LexerTokenType::HorizontalBreak, &token_list) {
+            else if self.compare_token(&LexerTokenType::String, &token_list) {
                 // Data
                 tag_list.push(self.match_data(&token_list));
             }
@@ -141,12 +142,6 @@ impl TokenParser {
             else if self.compare_token(&LexerTokenType::LeftAngleBracket, token_list) {
                 break;
             }
-            else if self.consume_token(&LexerTokenType::LineBreak, token_list) {
-                println!("Unhandled Line Break <br>");
-            }
-            else if self.consume_token(&LexerTokenType::HorizontalBreak, token_list) {
-                println!("Unhandled Horizontal Break <hr>");
-            }
             else {
                 let t = &token_list[self.current_index];
                 content_str += &t.raw_string;
@@ -160,8 +155,8 @@ impl TokenParser {
             char_index: index,
             char_length: length,
             position,
-            tag_type: TagType::Data, 
-            pair_type: TagPairType::Content, 
+            tag_type: TagType::Text, 
+            pair_type: TagPairType::Singular, 
             content: Some(content_str), 
             attributes: None, 
         }
@@ -176,27 +171,32 @@ impl TokenParser {
         println!("Match {}", t1.raw_string.escape_debug());
 
         let mut tag_type = TagType::Unhandled;
+        let mut pair_type = TagPairType::Opening;
         if self.compare_token(&LexerTokenType::String, token_list) {
             tag_type = self.get_tag_enum(&token_list[self.current_index].raw_string);
+            if TokenParser::is_singular(&tag_type) {
+                pair_type = TagPairType::Singular;
+            }
             self.advance_token(token_list);
         }
 
         self.consume_whitespace(token_list);
         if self.consume_token(&LexerTokenType::RightAngleBracket, token_list) {
             let length = token_list[self.current_index].index - index;
+
             return HTMLTagToken { 
                 char_index: index,
                 char_length: length,
                 position,
                 tag_type, 
-                pair_type: TagPairType::Opening, 
+                pair_type, 
                 content: None, 
                 attributes: None, 
             }
         }
 
         let mut attribute_list = HashMap::new();
-        for i in 0..10 {
+        for _ in 0..10 {
             if let Some(attribute) = self.match_attribute(token_list) {
                 println!("Built key val pair {}={}", attribute.0, attribute.1);
                 attribute_list.insert(attribute.0, attribute.1);
@@ -222,7 +222,7 @@ impl TokenParser {
             char_length: length,
             position,
             tag_type, 
-            pair_type: TagPairType::Opening, 
+            pair_type, 
             content: None, 
             attributes, 
         }
@@ -282,7 +282,7 @@ impl TokenParser {
         }
         else {
             let t = &token_list[self.current_index];
-            println!("Error at {}: 'html' wasn't found in !DOCTYPE {:?}: '{}'", t.index, t.token_type, t.raw_string.escape_debug());
+            println!("Error at {}: I still don't understand why the fuck this tag exists, but 'html' wasn't found in !DOCTYPE {:?}: '{}'", t.index, t.token_type, t.raw_string.escape_debug());
         }
         if !self.consume_token(&LexerTokenType::RightAngleBracket, token_list) {
             let t = &token_list[self.current_index];
@@ -427,13 +427,28 @@ impl TokenParser {
         else if str == "p" {
             tag = TagType::P;
         }
-        else if str == "Img" {
+        else if str == "img" {
             tag = TagType::Img;
+        }
+        else if str == "br" {
+            tag = TagType::LineBreak;
+        }
+        else if str == "hr" {
+            tag = TagType::HorizontalBreak;
         }
         else {
             tag = TagType::Unhandled;
         }
 
         tag
+    }
+
+    fn is_singular(tag_type_enum: &TagType) -> bool {
+        match tag_type_enum {
+            TagType::LineBreak => true,
+            TagType::HorizontalBreak => true,
+            TagType::Img => true,
+            _ => false,
+        }
     }
 }

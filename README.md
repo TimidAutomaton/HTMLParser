@@ -3,11 +3,11 @@ A really basic HTML Parser written to learn some basics. I don't actually recomm
 
 The parser works in three steps:
    - Read in the file to the lexer. The lexer converts characters and strings into tokens to be further processed.
-   - Read the tokens into the token_parser. This step groups the tokens into opening tags, closing tags, and data
+   - Read the tokens into the token_parser. This step groups the tokens into opening tags, closing tags, and singular tags
    - Read the  tokens into the tree_builder. This creates a tree structure with the tags by looping through the tokens. The process looks something like:
       - Get token
       - If opening, link as a child of current parent, and set as current parent
-      - If content, set as content value for current parent (A better way would be setting content as a child of the parent as well, rather than a field)
+      - If singular, set as a child of the current parent
       - If closing, set the parent of the current parent to be the current parent (move up (down?) the tree)
 
 # Program Structure

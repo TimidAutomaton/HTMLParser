@@ -1,0 +1,2 @@
+# EGui and EFrame
+If you got here from the video, the graphics were made with egui and eframe. It's mostly just my code dropped into eframe, so I thought uploading all of the code would be too cluttered. If you're interested in the gui you should be able to download eframe and copy the app.rs, lib.rs, and html_parser folder into the project to get it (hopefully) working.

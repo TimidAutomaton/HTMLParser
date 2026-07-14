@@ -71,9 +71,9 @@ impl HTMLTreeBuilder {
             }
             else if t.tag_type == TagType::DOCTYPE {
                 self.advance_tag(tag_token_list);
-                println!("I still don't understand DOCTYPE");
+                println!("DOCTYPE annoys me for some reason");
             }
-            else if t.pair_type == TagPairType::Opening {
+            else if t.pair_type == TagPairType::Opening || t.pair_type == TagPairType::Singular {
                 let mut new_tag = HTMLTag {
                     index: t.char_index,
                     tag_type: t.tag_type.clone(),
@@ -86,17 +86,13 @@ impl HTMLTreeBuilder {
                 let tag_id = new_tag.id;
                 self.add_child(self.current_parent, &mut new_tag);
                 self.tag_list.insert(new_tag.id, new_tag);
-                self.current_parent = tag_id;
+                if t.pair_type == TagPairType::Opening {
+                    self.current_parent = tag_id;
+                }
                 self.advance_tag(tag_token_list);
             }
             else if t.pair_type == TagPairType::Closing {
                 self.current_parent = self.tag_list[&self.current_parent].parent.unwrap();
-                self.advance_tag(tag_token_list);
-            }
-            else if t.pair_type == TagPairType::Content {
-                let mut parent = self.tag_list.remove(&self.current_parent).unwrap();
-                parent.content = t.content.clone();
-                self.tag_list.insert(parent.id, parent);
                 self.advance_tag(tag_token_list);
             }
         }
@@ -164,7 +160,7 @@ impl HTMLTreeBuilder {
     }
 }
 
-fn get_tree_string(root: usize, map: &HashMap<usize, HTMLTag>) -> Vec<(usize, String)> {
+pub fn get_tree_string(root: usize, map: &HashMap<usize, HTMLTag>) -> Vec<(usize, String)> {
     let mut depth = 0;
     let mut to_print = Vec::new();
     to_print.push((depth, root));

@@ -1,5 +1,12 @@
 
 
+
+// read each character
+// if after left angle bracket <, convert to tokens
+// if after right angle bracket >, convert to data string 
+
+
+
 const END_OF_FILE: &str = "EOF";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -28,16 +35,13 @@ pub enum LexerTokenType {
     Ampersand,
     Equal,
 
-    String, 
+    String, // 
     Number,
 
     Space,
     CarriageReturn,
     NewLine,
     Tab,
-
-    LineBreak,
-    HorizontalBreak,
 
     EOF,
     Comment,
@@ -113,12 +117,6 @@ impl HTMLLexer {
             else if c == "<" {
                 if self.compare_string("<!--", text) {
                     token_list.push(self.match_comment(text));
-                }
-                else if self.compare_string("<br>", text) {
-                    token_list.push(self.match_line_break(text));
-                }
-                else if self.compare_string("<hr>", text) {
-                    token_list.push(self.match_horizontal_break(text));
                 }
                 else {
                     token_list.push(LexerToken::new(current_index, pos, &c, LexerTokenType::LeftAngleBracket));
@@ -340,60 +338,6 @@ impl HTMLLexer {
         }
     }
 
-    fn match_line_break(&mut self, text: &str) -> LexerToken {
-        let start_index = self.current_index;
-
-        let mut str = "".to_string();
-        loop {
-            let c = self.advance_char(text);
-            if c == "END_OF_FILE" {
-                break;
-            }
-            else if c == ">" {
-                self.advance_char(text);
-                break;
-            }
-            else {
-                str += &c;
-            }
-        }
-
-        LexerToken { 
-            index: start_index, 
-            length: str.len(), 
-            raw_string: str, 
-            token_type: LexerTokenType::LineBreak,
-            position: self.position,
-        }
-    }
-
-    fn match_horizontal_break(&mut self, text: &str) -> LexerToken {
-        let start_index = self.current_index;
-
-        let mut str = "".to_string();
-        loop {
-            let c = self.advance_char(text);
-            if c == "END_OF_FILE" {
-                break;
-            }
-            else if c == ">" {
-                self.advance_char(text);
-                break;
-            }
-            else {
-                str += &c;
-            }
-        }
-
-        LexerToken { 
-            index: start_index, 
-            length: str.len(), 
-            raw_string: str, 
-            token_type: LexerTokenType::HorizontalBreak,
-            position: self.position,
-        }
-    }
-    
 }
 
 
